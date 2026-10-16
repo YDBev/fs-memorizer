@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>USPA Formation Skydiving Memorizer & Flashcards</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0284c7">
+  
+  <!-- Apple iOS Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FS Memorizer">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="icon" href="assets/icons/apple-touch-icon.png">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <a href="#" class="brand" onclick="switchView('flashcards'); return false;">
+        <div class="brand-icon">🪂</div>
+        <div class="brand-text">
+          <h1>USPA FS Memorizer</h1>
+          <p>Formation Skydiving Competition Pools & Flashcards</p>
+        </div>
+      </a>
+
+      <!-- Discipline Dropdown -->
+      <div class="discipline-selector">
+        <label for="disciplineSelect" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Discipline:</label>
+        <select id="disciplineSelect" class="select-custom" onchange="onDisciplineChange(this.value)">
+          <option value="ALL">All Disciplines (233 formations)</option>
+          <option value="Indoor 2-Way VFS" selected>Indoor 2-Way VFS (BB, HU, HD • 44 formations)</option>
+          <option value="FS 4-Way">FS 4-Way (22 Blocks + 16 Randoms)</option>
+          <option value="FS 8-Way">FS 8-Way (22 Blocks + 16 Randoms)</option>
+          <option value="FS 10-Way">FS 10-Way (12 Formations)</option>
+          <option value="FS 16-Way">FS 16-Way (12 Blocks + 9 Randoms)</option>
+          <option value="VFS 4-Way">VFS 4-Way (22 Blocks + 16 Randoms)</option>
+          <option value="MFS 2-Way">MFS 2-Way (22 Blocks + 16 Randoms)</option>
+          <option value="Rules & Symbols">Rules & Symbols (Scoring & Darts)</option>
+        </select>
+      </div>
+
+      <!-- Header actions (Sound, Theme, iPhone pill, Anki pill) -->
+      <div class="header-actions">
+        <button class="btn-primary" style="padding: 7px 12px; font-size: 0.82rem; background: linear-gradient(135deg, #10b981, #059669);" onclick="openIPhoneModal()" title="Install on iPhone">
+          📱 iPhone App
+        </button>
+        <button id="soundToggleBtn" class="btn-icon" title="Toggle Sound Effects" onclick="toggleSound()">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button id="themeToggleBtn" class="btn-icon" title="Toggle Dark/Light Mode" onclick="toggleTheme()">
+          <span id="themeIcon">☀️</span>
+        </button>
+        <button class="btn-primary" style="padding: 7px 12px; font-size: 0.82rem;" onclick="switchView('anki')">
+          📦 Anki Decks
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <div class="nav-tabs-wrapper">
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-view="flashcards" onclick="switchView('flashcards')">
+        🗂️ Flashcards
+      </button>
+      <button class="nav-tab" data-view="quiz" onclick="switchView('quiz')">
+        ⚡ Speed Quiz
+      </button>
+      <button class="nav-tab" data-view="draw" onclick="switchView('draw')">
+        🎯 Draw & Dirt Dive
+      </button>
+      <button class="nav-tab" data-view="typein" onclick="switchView('typein')">
+        ⌨️ Type-In Drill
+      </button>
+      <button class="nav-tab" data-view="explorer" onclick="switchView('explorer')">
+        📖 Pool Explorer
+      </button>
+      <button class="nav-tab" data-view="anki" onclick="switchView('anki')">
+        📥 Anki Decks
+      </button>
+    </nav>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- ================= VIEW 1: FLASHCARDS ================= -->
+    <section id="view-flashcards" class="view-section active">
+      <div class="flashcards-container">
+        
+        <!-- Controls & Filters Bar -->
+        <div class="section-header" style="width: 100%; margin-bottom: 12px;">
+          <div class="filter-bar">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">FILTER:</span>
+            <button class="chip-btn active" data-fc-filter="all" onclick="setFlashcardFilter('all')">All Items</button>
+            <button class="chip-btn" data-fc-filter="block" onclick="setFlashcardFilter('block')">Blocks Only</button>
+            <button class="chip-btn" data-fc-filter="random" onclick="setFlashcardFilter('random')">Randoms Only</button>
+          </div>
+          
+          <div class="filter-bar">
+            <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">TEST MODE:</span>
+            <select id="flashcardModeSelect" class="select-custom" style="padding: 4px 10px; font-size: 0.82rem;" onchange="setFlashcardTestMode(this.value)">
+              <option value="diagram-to-name">Diagram ➔ Name (Visual Recognition)</option>
+              <option value="name-to-diagram">Name ➔ Diagram (Mental Dirt Dive)</option>
+              <option value="inter-test">Inter Rotations Only (Blocks)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Progress Tracker -->
+        <div class="flashcard-stats-bar">
+          <div>Card <span id="fc-current-index">1</span> of <span id="fc-total-count">38</span></div>
+          <div id="fc-discipline-pill" class="badge badge-block">FS 4-Way</div>
+          <div>Mastery: <span id="fc-mastery-percent">0%</span></div>
+        </div>
+        <div class="progress-track">
+          <div id="fc-progress-fill" class="progress-fill"></div>
+        </div>
+
+        <!-- 3D Flip Card -->
+        <div class="card-scene" id="flashcardScene" onclick="flipFlashcard()">
+          <div class="card-flipper" id="flashcardFlipper">
+            
+            <!-- Card Front -->
+            <div class="card-face card-face-front">
+              <div class="card-header-bar">
+                <span id="fc-front-badge" class="badge badge-block">Block</span>
+                <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600;" id="fc-front-discipline">FS 4-Way</span>
+              </div>
+
+              <!-- Question / Image Container -->
+              <div class="card-img-wrapper" id="fc-front-img-wrapper">
+                <img id="fc-front-img" src="" alt="Formation Diagram">
+              </div>
+
+              <div id="fc-front-text-prompt" style="display: none; text-align: center; margin: auto;">
+                <h2 id="fc-front-name-title" class="prompt-title" style="font-size: 2rem;">Name</h2>
+                <p class="prompt-sub">Visualize the grips and body positions in your head, then tap to check!</p>
+              </div>
+
+              <div class="card-prompt-text">
+                <span>🔄 Click or press <strong>Space</strong> to flip</span>
+              </div>
+            </div>
+
+            <!-- Card Back -->
+            <div class="card-face card-face-back">
+              <div class="card-header-bar">
+                <span id="fc-back-badge" class="badge badge-block">Block</span>
+                <span id="fc-back-points" class="badge" style="background: rgba(251, 191, 36, 0.2); color: var(--accent-yellow);">2 Points</span>
+              </div>
+
+              <!-- Labeled Image -->
+              <div class="card-img-wrapper" id="fc-back-img-wrapper" style="max-height: 250px;">
+                <img id="fc-back-img" src="" alt="Formation Labeled Diagram">
+              </div>
+
+              <!-- Answer details -->
+              <div class="answer-details">
+                <div class="answer-code-title" id="fc-back-title">1: Molar</div>
+                <div class="detail-line" id="fc-back-inter-row">
+                  <span class="label">Inter Maneuver:</span>
+                  <span class="val"><span class="inter-pill" id="fc-back-inter">360° / 360°</span></span>
+                </div>
+                <div class="detail-line" id="fc-back-f1-row">
+                  <span class="label">First Formation:</span>
+                  <span class="val" id="fc-back-f1">Molar</span>
+                </div>
+                <div class="detail-line" id="fc-back-f2-row">
+                  <span class="label">Second Formation:</span>
+                  <span class="val" id="fc-back-f2">Molar</span>
+                </div>
+                <div class="detail-line" id="fc-back-notes-row" style="display: none;">
+                  <span class="label">Notes:</span>
+                  <span class="val" id="fc-back-notes" style="font-style: italic;"></span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Rating Buttons (Leitner confidence) -->
+        <div class="flashcard-controls">
+          <button class="btn-rate btn-again" onclick="rateFlashcard(1)" title="Shortcut: Key 1 or Left Arrow">
+            <span>Again</span>
+            <span class="key-hint">Press 1 [←]</span>
+          </button>
+          <button class="btn-rate btn-hard" onclick="rateFlashcard(2)" title="Shortcut: Key 2 or Down Arrow">
+            <span>Hard</span>
+            <span class="key-hint">Press 2 [↓]</span>
+          </button>
+          <button class="btn-rate btn-good" onclick="rateFlashcard(3)" title="Shortcut: Key 3 or Up Arrow">
+            <span>Good</span>
+            <span class="key-hint">Press 3 [↑]</span>
+          </button>
+          <button class="btn-rate btn-easy" onclick="rateFlashcard(4)" title="Shortcut: Key 4 or Right Arrow">
+            <span>Easy</span>
+            <span class="key-hint">Press 4 [→]</span>
+          </button>
+        </div>
+
+        <!-- Secondary Navigation (Prev / Flip / Next / Shuffle) -->
+        <div class="flashcard-nav-bar">
+          <button class="btn-secondary" onclick="prevFlashcard()">⬅️ Prev</button>
+          <button class="btn-secondary" onclick="flipFlashcard()">🔄 Flip [Space]</button>
+          <button class="btn-secondary" onclick="nextFlashcard()">Next ➡️</button>
+          <button class="btn-secondary" onclick="shuffleFlashcards()">🔀 Shuffle</button>
+          <button class="btn-secondary" onclick="resetDisciplineProgress()">🔄 Reset Stats</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= VIEW 2: SPEED QUIZ ================= -->
+    <section id="view-quiz" class="view-section">
+      <div class="quiz-container">
+        
+        <div class="quiz-header-bar">
+          <div>
+            <h2 class="section-title">⚡ Speed Recall Quiz</h2>
+            <p class="section-desc">Sub-second identification practice for fast competition recognition</p>
+          </div>
+          <div class="quiz-score-badge">
+            <span style="color: var(--accent-blue);">Score: <span id="quiz-score">0</span></span>
+            <span style="color: var(--accent-green);">Streak: <span id="quiz-streak">0</span> 🔥</span>
+          </div>
+        </div>
+
+        <div class="quiz-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="quiz-disc-badge" class="badge badge-block">FS 4-Way</span>
+            <span style="font-size: 0.88rem; font-weight: 700; color: var(--text-muted);" id="quiz-progress-text">Question 1 of 10</span>
+          </div>
+
+          <div class="quiz-question-img">
+            <img id="quiz-q-img" src="" alt="Quiz Formation">
+          </div>
+
+          <div style="text-align: center; font-size: 1.1rem; font-weight: 700;">
+            Which formation is this?
+          </div>
+
+          <!-- 4 Multiple Choice Options -->
+          <div class="quiz-options-grid" id="quiz-options-container">
+            <!-- Populated via JavaScript -->
+          </div>
+
+          <div id="quiz-feedback" class="quiz-feedback-box">
+            <div id="quiz-feedback-title" style="font-weight: 800; font-size: 1.05rem; margin-bottom: 4px;"></div>
+            <div id="quiz-feedback-body" style="font-size: 0.9rem; color: var(--text-secondary);"></div>
+            <button class="btn-primary" style="margin-top: 12px; width: 100%; justify-content: center;" onclick="nextQuizQuestion()">
+              Continue [Enter] ➔
+            </button>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px; text-align: center;">
+          <button class="btn-secondary" onclick="restartQuiz()">🔄 Restart Quiz</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= VIEW 3: DRAW GENERATOR & DIRT DIVE ================= -->
+    <section id="view-draw" class="view-section">
+      <div class="draw-generator-box">
+        <div class="section-header" style="margin-bottom: 12px;">
+          <div>
+            <h2 class="section-title">🎯 Competition Draw & Dirt-Dive Practice</h2>
+            <p class="section-desc">Generate official USPA competition rounds & walk through the sequence in order</p>
+          </div>
+          <div class="draw-controls">
+            <button class="btn-primary" onclick="generateCompetitionDraw()">
+              🎲 Draw Random Round
+            </button>
+            <button class="btn-secondary" onclick="stepDirtDive(1)">
+              🚶 Walk Dirt Dive [Space]
+            </button>
+          </div>
+        </div>
+
+        <div id="draw-info-banner" style="background: var(--bg-secondary); border-radius: var(--radius-md); padding: 12px 18px; margin-bottom: 16px; border-left: 4px solid var(--accent-blue); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="font-weight: 700; font-size: 1.1rem;">
+            Round Draw: <span id="draw-sequence-str" style="color: var(--accent-blue); font-family: monospace; font-size: 1.25rem;">3 - B - 14 - K</span>
+          </div>
+          <div style="font-size: 0.9rem; color: var(--text-secondary);">
+            Total Points in Sequence: <strong id="draw-total-points" style="color: var(--accent-yellow);">7</strong>
+          </div>
+        </div>
+
+        <!-- Draw Cards Board -->
+        <div class="draw-display-board" id="drawDisplayBoard">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <div class="step-tracker-bar">
+          <button class="btn-secondary" onclick="stepDirtDive(-1)">⬅️ Previous Point</button>
+          <div style="font-weight: 700; font-size: 0.95rem;">
+            Step <span id="dirt-dive-step">1</span> of <span id="dirt-dive-total">4</span>: <span id="dirt-dive-name" style="color: var(--accent-blue);">Side Flake Opal to Turf</span>
+          </div>
+          <button class="btn-secondary" onclick="stepDirtDive(1)">Next Point ➡️</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= VIEW 4: TYPE-IN RECALL ================= -->
+    <section id="view-typein" class="view-section">
+      <div class="quiz-container">
+        <div class="quiz-card">
+          <div class="section-header" style="margin-bottom: 8px;">
+            <div>
+              <h2 class="section-title">⌨️ Type-In Recall Drill</h2>
+              <p class="section-desc">Type the formation name or code to lock in active recall</p>
+            </div>
+            <span id="typein-disc-badge" class="badge badge-block">FS 4-Way</span>
+          </div>
+
+          <div class="quiz-question-img">
+            <img id="typein-q-img" src="" alt="Type-in Formation">
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="typein-input" class="search-input" placeholder="Type name or code (e.g. Molar or 1)..." autocomplete="off" autofocus onkeydown="handleTypeInKey(event)">
+            <button class="btn-primary" onclick="checkTypeInAnswer()">Check Answer</button>
+            <button class="btn-secondary" onclick="skipTypeIn()">Skip / Show</button>
+          </div>
+
+          <div id="typein-feedback" class="quiz-feedback-box">
+            <div id="typein-feedback-title" style="font-weight: 800; font-size: 1.05rem;"></div>
+            <div id="typein-feedback-body" style="margin-top: 6px; font-size: 0.9rem;"></div>
+            <button class="btn-primary" style="margin-top: 12px;" onclick="nextTypeIn()">Next Formation ➔</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VIEW 5: POOL EXPLORER ================= -->
+    <section id="view-explorer" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">📖 Complete Dive Pool Catalog</h2>
+          <p class="section-desc">Inspect all formations, intermediate transitions, and scoring definitions</p>
+        </div>
+        <div class="filter-bar">
+          <button class="chip-btn active" data-exp-filter="all" onclick="setExplorerFilter('all')">All</button>
+          <button class="chip-btn" data-exp-filter="block" onclick="setExplorerFilter('block')">Blocks</button>
+          <button class="chip-btn" data-exp-filter="random" onclick="setExplorerFilter('random')">Randoms</button>
+          <button class="chip-btn" id="btn-toggle-grid-mask" onclick="toggleGridQuizMode()">
+            👁️ Mask Labels (Self-Test Mode)
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="explorer-search-bar">
+        <input type="text" id="explorerSearchInput" class="search-input" placeholder="Search by name, block number (e.g. 14), or letter (e.g. B)..." oninput="filterExplorerGrid()">
+      </div>
+
+      <!-- Grid Cards -->
+      <div class="formations-grid" id="formationsGrid">
+        <!-- Populated via JavaScript -->
+      </div>
+    </section>
+
+    <!-- ================= VIEW 6: ANKI DOWNLOADS ================= -->
+    <section id="view-anki" class="view-section">
+      <div class="anki-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">📥 Pre-Built Anki Decks (.apkg)</h2>
+            <p class="section-desc">Download native Anki decks with full embedded graphics and spaced repetition models</p>
+          </div>
+        </div>
+
+        <div class="anki-grid">
+          
+          <!-- Master Featured Deck -->
+          <div class="anki-card anki-card-featured">
+            <div class="anki-card-header">
+              <span class="badge" style="background: var(--accent-blue); color: white; margin-bottom: 8px;">Recommended Master Deck</span>
+              <h3>USPA Formation Skydiving (Complete Collection)</h3>
+              <p>Contains all disciplines (FS 4-Way, 8-Way, 10-Way, 16-Way, VFS 4-Way, MFS 2-Way, plus Scoring & Symbols) with 189 high-res formation cards, 374 media diagrams, subdecks, and two-way recognition & mental visualization cards.</p>
+            </div>
+            <a href="anki_decks/USPA_Formation_Skydiving_Complete.apkg" class="btn-primary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download Complete Master Deck (.apkg - ~11 MB)
+            </a>
+          </div>
+
+          <!-- Individual Decks -->
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-block">FS 4-Way</span>
+              <h3>FS 4-Way Deck</h3>
+              <p>22 Blocks + 16 Randoms (A-Q). Full sequence diagrams, sub-group turns, and recall cards.</p>
+            </div>
+            <a href="anki_decks/USPA_FS_4Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download FS 4-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-block">FS 8-Way</span>
+              <h3>FS 8-Way Deck</h3>
+              <p>22 Blocks + 16 Randoms (A-Q). Full 8-way sequences and sub-group turns.</p>
+            </div>
+            <a href="anki_decks/USPA_FS_8Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download FS 8-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-formation">FS 10-Way</span>
+              <h3>FS 10-Way Deck</h3>
+              <p>All 12 speed-star & line formations (Compressed Donut to Trapped Bear).</p>
+            </div>
+            <a href="anki_decks/USPA_FS_10Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download FS 10-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-block">FS 16-Way</span>
+              <h3>FS 16-Way Deck</h3>
+              <p>12 Blocks + 9 Randoms (A-J). Large formation competition dive pool.</p>
+            </div>
+            <a href="anki_decks/USPA_FS_16Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download FS 16-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-random">VFS 4-Way</span>
+              <h3>VFS 4-Way Deck</h3>
+              <p>22 Vertical Blocks + 16 Randoms (Head-up & Head-down colored suits).</p>
+            </div>
+            <a href="anki_decks/USPA_VFS_4Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download VFS 4-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-random">MFS 2-Way</span>
+              <h3>MFS 2-Way Deck</h3>
+              <p>22 Blocks + 16 Randoms including flips, rotations, and camera dart angles.</p>
+            </div>
+            <a href="anki_decks/USPA_MFS_2Way.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download MFS 2-Way (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-random">Indoor 2-Way VFS</span>
+              <h3>Indoor 2-Way VFS Deck</h3>
+              <p>44 cards: Belly/Back (BB), Head-Up (HU), Head-Down (HD), Half-Eagle, Half-Cradle & INTER rules.</p>
+            </div>
+            <a href="anki_decks/USPA_Indoor_2Way_VFS.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download Indoor 2-Way VFS (.apkg)
+            </a>
+          </div>
+
+          <div class="anki-card">
+            <div class="anki-card-header">
+              <span class="badge badge-rule">Rules & Symbols</span>
+              <h3>Rules & Symbols Deck</h3>
+              <p>Scoring zones (Head, Arm, Leg, Foot, Sole, same/opposite), turn arrows & intent markers.</p>
+            </div>
+            <a href="anki_decks/USPA_Rules_and_Symbols.apkg" class="btn-secondary" download style="text-decoration: none; justify-content: center;">
+              ⬇️ Download Rules & Symbols (.apkg)
+            </a>
+          </div>
+
+        </div>
+
+        <!-- How to Import Guide -->
+        <div style="margin-top: 32px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px;">
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 12px;">📱 How to Import into Anki</h3>
+          <ol style="margin-left: 20px; line-height: 1.8; font-size: 0.95rem; color: var(--text-secondary);">
+            <li><strong>Desktop (Mac / Windows / Linux):</strong> Download the `.apkg` file and double-click it. Anki will automatically open, import all 189 cards, and sync the media images.</li>
+            <li><strong>iPhone / iPad (AnkiMobile):</strong> Download the `.apkg` file in Safari, tap "Share", and select "Copy to AnkiMobile".</li>
+            <li><strong>Android (AnkiDroid):</strong> Download the file, open AnkiDroid, tap the 3 dots menu ➔ <em>Import</em>, and choose the downloaded file.</li>
+          </ol>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal for Full Details & Zoom -->
+  <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+      <div id="modal-body">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for iPhone Installation -->
+  <div class="modal-overlay" id="iphoneModal" onclick="closeIPhoneModal(event)">
+    <div class="modal-content" style="max-width: 520px; text-align: center;" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="closeIPhoneModal()">&times;</button>
+      <div style="font-size: 2.2rem; margin-bottom: 8px;">📱</div>
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--accent-blue); margin-bottom: 8px;">Use on iPhone as a Native App</h2>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;">
+        Follow these steps to install the app on your iPhone. It runs full-screen, has a home screen icon, and works <strong>100% offline</strong> at the dropzone or in airplane mode!
+      </p>
+
+      <!-- QR Code -->
+      <div style="background: white; padding: 14px; border-radius: var(--radius-md); display: inline-block; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 16px;">
+        <img src="assets/images/iphone_qr.png" alt="Scan QR Code with iPhone" style="width: 180px; height: 180px; display: block;">
+      </div>
+      <p style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">
+        1. Open Camera app on your iPhone & point at this QR code<br>
+        <span style="font-weight: 400; color: var(--text-muted); font-size: 0.8rem;">(Or open Safari and go to <a href="https://medicaid-pdf-leon-stream.trycloudflare.com" target="_blank" style="color: var(--accent-blue); text-decoration: underline;">https://medicaid-pdf-leon-stream.trycloudflare.com</a>)</span>
+      </p>
+
+      <div style="text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; font-size: 0.88rem; line-height: 1.7; color: var(--text-secondary);">
+        <div><strong>Step 2:</strong> In Safari, tap the <strong>Share</strong> button <span style="display: inline-block; padding: 2px 6px; background: rgba(56,189,248,0.2); border-radius: 4px; color: var(--accent-blue); font-weight: 700;">⎙ [↑]</span> at the bottom.</div>
+        <div><strong>Step 3:</strong> Scroll down and tap <strong>"Add to Home Screen"</strong>.</div>
+        <div><strong>Step 4:</strong> Tap <strong>"Add"</strong> in the top right corner.</div>
+      </div>
+
+      <div style="margin-top: 16px; font-size: 0.8rem; color: var(--text-muted);">
+        ✨ That's it! Tap the <strong>FS Memorizer</strong> icon on your iPhone home screen to launch in full-screen standalone mode.
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>USPA National Formation Skydiving Competition Rules &bull; Based on Skydiver's Competition Manual (SCM August 2026 Edition)</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/data/formations_data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
